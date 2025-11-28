@@ -78,6 +78,35 @@ def create_doc(id, series):
     if series.get("type"):
         doc.add(TextField("type", series["type"], Field.Store.NO))
     
+    #score
+    if series.get("score"):
+        doc.add(TextField("score", str(series["score"]), Field.Store.NO))
+    
+    #WIKI DATA ADDITIONS
+    #country
+    if series.get("country"):
+        doc.add(TextField("country", series["country"], Field.Store.NO))
+    
+    #network
+    if series.get("network"):
+        doc.add(TextField("network", series["network"], Field.Store.NO))
+    
+    #plot
+    if series.get("plot"):
+        doc.add(TextField("plot", series["plot"], Field.Store.NO))
+    
+    #num of seasons
+    if series.get("num_seasons"):
+        doc.add(StringField("num_seasons", str(series["num_seasons"]), Field.Store.NO))
+    
+    #num of episodes
+    if series.get("num_episodes"):
+        doc.add(StringField("num_episodes", str(series["num_episodes"]), Field.Store.NO))
+    
+    #runtime
+    if series.get("runtime"):
+        doc.add(TextField("runtime", str(series["runtime"]), Field.Store.NO))
+    
     return doc
 
 #index creation
@@ -108,9 +137,31 @@ def search_lucene(query_string):
     searcher = IndexSearcher(DirectoryReader.open(directory))
     analyzer = StandardAnalyzer()
     
-    query_parser = QueryParser("title", analyzer)
-    query = query_parser.parse(query_string)
+    fields = [
+        "title", "year", "certification", "genres", "keywords",
+        "cast", "creator", "language", "status", "type", "score",
+        "country", "network", "plot", "num_seasons", "num_episodes", "runtime"
+    ]
 
+    #boost values
+    from java.util import HashMap
+    boosts = HashMap()
+    boosts.put("title", 3.0)
+    boosts.put("cast", 2.0)
+    boosts.put("genres", 1.5)
+    boosts.put("creator", 1.2)
+    boosts.put("keywords", 1.2)
+    boosts.put("country", 0.6)
+    boosts.put("network", 0.6)
+    boosts.put("plot", 0.6)
+    boosts.put("num_seasons", 0.5)
+    boosts.put("num_episodes", 0.5)
+    boosts.put("runtime", 0.5)
+
+
+    query_parser = MultiFieldQueryParser(fields, analyzer)
+    query = query_parser.parse(query_parser, query_string)
+    
     return searcher.search(query, 10).scoreDocs, searcher
 
 
@@ -165,15 +216,11 @@ def main():
     while True:
         try:
             print("\nTV SHOW SEARCH - LUCENE\n")
-            print("\nFields you can search:")
-            print("- title (default)")
-            print("- genres (Animation, Drama, Comedy, ...)")
-            print("- keywords\n- cast\n- creator\n- language")
-            print("- status (Ended, Returning Series, Canceled, ...)")
-            print("- year")
-            print("\nExamples")
-            print("  - title:Last")
-            print("  - title:Last AND year:2023   (combination of multiple fields)")
+            print("\nFulltext search: you can search across all fields")
+            print("\nSearchable fields: title, year, certification, genres, keywords, \
+                    cast, creator, language, status, type,\
+                    score, country, network, plot, num_seasons, \
+                    num_episodes, runtime")
             print("\nTo end write 'exit'\n")
             
             query_string = input('Search: ').strip()
