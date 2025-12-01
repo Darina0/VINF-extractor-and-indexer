@@ -32,10 +32,8 @@ def create_doc(id, series):
     field_type.setIndexOptions(IndexOptions.NONE)
     doc.add(Field("id", str(id), field_type))
     
-    #title - 3x bigger weight
+    #title
     if series.get("title"):
-        doc.add(TextField("title", series["title"], Field.Store.NO))
-        doc.add(TextField("title", series["title"], Field.Store.NO))
         doc.add(TextField("title", series["title"], Field.Store.NO))
     
     #year - indexed as string
@@ -146,11 +144,11 @@ def search_lucene(query_string):
     #boost values
     from java.util import HashMap
     boosts = HashMap()
-    boosts.put("title", 3.0)
-    boosts.put("cast", 2.0)
-    boosts.put("genres", 1.5)
+    boosts.put("title", 2)
+    boosts.put("keywords", 1.7)
+    boosts.put("genres", 2)
+    boosts.put("cast", 1.5)
     boosts.put("creator", 1.2)
-    boosts.put("keywords", 1.2)
     boosts.put("country", 0.6)
     boosts.put("network", 0.6)
     boosts.put("plot", 0.6)
@@ -218,9 +216,9 @@ def main():
             print("\nTV SHOW SEARCH - LUCENE\n")
             print("\nFulltext search: you can search across all fields")
             print("\nSearchable fields: title, year, certification, genres, keywords, \
-                    cast, creator, language, status, type,\
-                    score, country, network, plot, num_seasons, \
-                    num_episodes, runtime")
+                    \ncast, creator, language, status, type,\
+                    \nscore, country, network, plot, num_seasons, \
+                    \nnum_episodes, runtime")
             print("\nTo end write 'exit'\n")
             
             query_string = input('Search: ').strip()
